@@ -1,9 +1,7 @@
 from django import forms
+from .models import Booking, Slot
 
-from hello.models import LogMessage
-
-
-class LogMessageForm(forms.ModelForm):
+class BookingForm(forms.ModelForm):
     class Meta:
-        model = LogMessage
-        fields = ("message",)
+        model = Booking
+        fields = ['slot']

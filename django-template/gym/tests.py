@@ -1,32 +1,28 @@
 from django.test import TestCase, Client
 from django.utils import timezone
-from .models import LogMessage
+from django.contrib.auth.models import User
+from .models import Slot, Booking
 
-class TestLogMessageModel(TestCase):
-
+class TestModels(TestCase):
     def setUp(self):
-        self.log_message = LogMessage.objects.create(
-            message='Test Message',
-            log_date=timezone.now()
+        self.user = User.objects.create_user(
+            username='testuser', 
+            password='testpassword'
+        )
+        self.slot = Slot.objects.create(
+            date=timezone.now().date(),
+            start_time='10:00',
+            end_time='11:00'
         )
 
-    def test_log_message_creation(self):
-        self.assertTrue(isinstance(self.log_message, LogMessage))
-        self.assertEqual(self.log_message.message, 'Test Message')
-
-    def test_log_message_str(self):
-        expected_object_name = f"'{self.log_message.message}' logged on {timezone.localtime(self.log_message.log_date).strftime('%A, %d %B, %Y at %X')}"
-        self.assertEqual(str(self.log_message), expected_object_name)
-
-
+    def test_slot_creation(self):
+        self.assertTrue(isinstance(self.slot, Slot))
+        self.assertEqual(self.slot.available, 10)
 
 class TestViews(TestCase):
-
     def setUp(self):
         self.client = Client()
 
     def test_not_found_url(self):
         response = self.client.get('/a-url-that-does-not-exist')
-
         self.assertEquals(response.status_code, 404)
- 
