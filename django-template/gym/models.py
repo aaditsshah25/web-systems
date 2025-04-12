@@ -1,0 +1,30 @@
+from django.db import models
+from django.contrib.auth.models import User
+from django.utils import timezone
+
+class Slot(models.Model):
+    """Model representing a gym time slot."""
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    capacity = models.IntegerField(default=10)
+    available = models.IntegerField(default=10)
+    
+    def __str__(self):
+        return f"{self.date} - {self.start_time} to {self.end_time}"
+    
+    class Meta:
+        unique_together = ('date', 'start_time', 'end_time')
+        ordering = ['date', 'start_time']
+
+class Booking(models.Model):
+    """Model representing a booking made by a user for a specific slot."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings')
+    slot = models.ForeignKey(Slot, on_delete=models.CASCADE, related_name='bookings')
+    booked_at = models.DateTimeField(default=timezone.now)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.slot}"
+    
+    class Meta:
+        unique_together = ('user', 'slot')
