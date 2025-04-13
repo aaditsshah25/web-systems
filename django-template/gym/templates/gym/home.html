@@ -1,0 +1,20 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Gym Booking System{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h1>Welcome to the Gym Booking System</h1>
+    
+    <p>This application allows you to book gym slots online.</p>
+    
+    {% if user.is_authenticated %}
+        <a href="{% url 'dashboard' %}" class="btn">Go to Dashboard</a>
+    {% else %}
+        <div style="display: flex; margin-top: 20px;">
+            <a href="{% url 'login_page' %}" class="btn" style="margin-right: 10px;">Login</a>
+            <a href="{% url 'register_page' %}" class="btn">Register</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

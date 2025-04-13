@@ -1,0 +1,50 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Available Slots{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Available Slots</h2>
+    
+    {% if message %}
+    <p style="color: {% if success %}green{% else %}red{% endif %};">{{ message }}</p>
+    {% endif %}
+    
+    {% if slots %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Available Slots</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for slot in slots %}
+            <tr>
+                <td>{{ slot.date }}</td>
+                <td>{{ slot.start_time }}</td>
+                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.available }} / {{ slot.capacity }}</td>
+                <td>
+                    {% if slot.available > 0 %}
+                    <form method="post" action="{% url 'book_slot_web' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="slot_id" value="{{ slot.id }}">
+                        <button type="submit" class="btn">Book</button>
+                    </form>
+                    {% else %}
+                    <span style="color: red;">Full</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No available slots found.</p>
+    {% endif %}
+</div>
+{% endblock %}

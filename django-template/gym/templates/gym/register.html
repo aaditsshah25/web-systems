@@ -1,0 +1,37 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Register</h2>
+    
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label for="password1">Password:</label>
+            <input type="password" id="password1" name="password1" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label for="password2">Confirm Password:</label>
+            <input type="password" id="password2" name="password2" required style="width: 100%; padding: 8px; margin-top: 5px;">
+        </div>
+        
+        <button type="submit" class="btn">Register</button>
+    </form>
+    
+    <p style="margin-top: 20px;">
+        Already have an account? <a href="{% url 'login_page' %}">Login here</a>
+    </p>
+</div>
+{% endblock %}

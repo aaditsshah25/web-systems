@@ -141,3 +141,122 @@ def my_bookings_view(request):
         return JsonResponse({'bookings': bookings_data})
     
     return JsonResponse({'error': 'Only GET method is allowed'}, status=405)
+
+# ...existing code...
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+
+def home_view(request):
+    """Render the home page."""
+    return render(request, 'gym/home.html')
+
+def register_page_view(request):
+    """Render the registration page."""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password1 = request.POST.get('password1')
+        password2 = request.POST.get('password2')
+        email = request.POST.get('email', '')
+        
+        if not username or not password1:
+            return render(request, 'gym/register.html', {'error': 'Username and password are required'})
+        
+        if password1 != password2:
+            return render(request, 'gym/register.html', {'error': 'Passwords do not match'})
+        
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password1)
+            return redirect('login_page')
+        except IntegrityError:
+            return render(request, 'gym/register.html', {'error': 'Username already taken'})
+    
+    return render(request, 'gym/register.html')
+
+def login_page_view(request):
+    """Render the login page."""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            return render(request, 'gym/login.html', {'error': 'Invalid credentials'})
+    
+    return render(request, 'gym/login.html')
+
+def logout_view(request):
+    """Log the user out."""
+    logout(request)
+    return redirect('home')
+
+@login_required
+def dashboard_view(request):
+    """Render the user dashboard."""
+    return render(request, 'gym/dashboard.html')
+
+@login_required
+def view_slots_view(request):
+    """Render the available slots page."""
+    today = timezone.now().date()
+    slots = Slot.objects.filter(date__gte=today)
+    return render(request, 'gym/slots.html', {'slots': slots})
+
+@login_required
+def view_bookings_view(request):
+    """Render the user's bookings page."""
+    bookings = Booking.objects.filter(user=request.user).select_related('slot')
+    return render(request, 'gym/bookings.html', {'bookings': bookings})
+
+@login_required
+def book_slot_web_view(request):
+    """Handle booking a slot from the web interface."""
+    if request.method == 'POST':
+        slot_id = request.POST.get('slot_id')
+        
+        if not slot_id:
+            return redirect('view_slots')
+        
+        try:
+            with transaction.atomic():
+                slot = Slot.objects.select_for_update().get(id=slot_id)
+                
+                if slot.available <= 0:
+                    return render(request, 'gym/slots.html', {
+                        'slots': Slot.objects.filter(date__gte=timezone.now().date()),
+                        'message': 'No available space in this slot',
+                        'success': False
+                    })
+                
+                # Check if user already has a booking for this slot
+                if Booking.objects.filter(user=request.user, slot=slot).exists():
+                    return render(request, 'gym/slots.html', {
+                        'slots': Slot.objects.filter(date__gte=timezone.now().date()),
+                        'message': 'You already have a booking for this slot',
+                        'success': False
+                    })
+                
+                # Create booking and update slot availability
+                booking = Booking.objects.create(user=request.user, slot=slot)
+                slot.available -= 1
+                slot.save()
+                
+                return render(request, 'gym/slots.html', {
+                    'slots': Slot.objects.filter(date__gte=timezone.now().date()),
+                    'message': 'Slot booked successfully!',
+                    'success': True
+                })
+                
+        except Slot.DoesNotExist:
+            return render(request, 'gym/slots.html', {
+                'slots': Slot.objects.filter(date__gte=timezone.now().date()),
+                'message': 'Slot not found',
+                'success': False
+            })
+    
+    return redirect('view_slots')

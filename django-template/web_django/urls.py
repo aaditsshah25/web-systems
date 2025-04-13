@@ -19,5 +19,6 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('gym.urls')),
+    path('api/', include('gym.urls')),  # Keep API endpoints
+    path('', include('gym.urls')),  # Add root paths for web interface
 ]

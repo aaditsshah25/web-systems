@@ -117,5 +117,42 @@ def main():
         print("3. Use API client: python -m gym.api_client <command>")
         print("4. Use Socket client: python -m gym.socket_client <command>")
 
+# ...existing code...
+
+def run_all():
+    """Run the entire system with multiple terminals."""
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Start Django server in a new terminal
+    print("Starting Django server...")
+    if os.name == 'nt':  # Windows
+        django_cmd = f'start cmd /k "cd /d {project_dir} && python manage.py runserver"'
+    else:  # Linux/Mac
+        django_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && python manage.py runserver; bash"'
+    os.system(django_cmd)
+    
+    # Give Django server time to start
+    time.sleep(2)
+    
+    # Start Socket server in a new terminal
+    print("Starting Socket server...")
+    if os.name == 'nt':  # Windows
+        socket_cmd = f'start cmd /k "cd /d {project_dir} && python -m gym.socket_server"'
+    else:  # Linux/Mac
+        socket_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && python -m gym.socket_server; bash"'
+    os.system(socket_cmd)
+    
+    # ...existing code...
+
+    # Open client website in browser
+    print("Opening client website in browser...")
+    webbrowser.open("http://127.0.0.1:8000/")  # Changed from /api/ to /
+    
+    # Open admin in browser
+    print("Opening admin interface in browser...")
+    webbrowser.open("http://127.0.0.1:8000/admin/")
+    
+    # ...rest of existing code...
+
 if __name__ == "__main__":
     main()

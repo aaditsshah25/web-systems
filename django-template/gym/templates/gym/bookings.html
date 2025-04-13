@@ -1,0 +1,35 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>My Bookings</h2>
+    
+    {% if bookings %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Booked At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.slot.date }}</td>
+                <td>{{ booking.slot.start_time }}</td>
+                <td>{{ booking.slot.end_time }}</td>
+                <td>{{ booking.booked_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You don't have any bookings yet.</p>
+    <a href="{% url 'view_slots' %}" class="btn">Book a Slot</a>
+    {% endif %}
+</div>
+{% endblock %}

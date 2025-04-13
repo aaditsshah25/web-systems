@@ -1,0 +1,15 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome, {{ user.username }}!</h2>
+    <p>From here you can manage your gym bookings.</p>
+    
+    <div style="display: flex; margin-top: 20px;">
+        <a href="{% url 'view_slots' %}" class="btn" style="margin-right: 10px;">View Available Slots</a>
+        <a href="{% url 'view_bookings' %}" class="btn">View My Bookings</a>
+    </div>
+</div>
+{% endblock %}
