@@ -27,9 +27,9 @@
         <tbody>
             {% for slot in slots %}
             <tr>
-                <td>{{ slot.date }}</td>
-                <td>{{ slot.start_time }}</td>
-                <td>{{ slot.end_time }}</td>
+                <td>{{ slot.date|date:"D, j M Y" }}</td>
+                <td>{{ slot.start_time|time:"g:i A" }}</td>
+                <td>{{ slot.end_time|time:"g:i A" }}</td>
                 <td>{{ slot.available }} / {{ slot.capacity }}</td>
                 <td>
                     {% if slot.available > 0 %}

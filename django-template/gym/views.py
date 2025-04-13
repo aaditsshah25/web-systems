@@ -153,6 +153,7 @@ def my_bookings_view(request):
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 def home_view(request):
     """Render the home page."""
@@ -210,7 +211,12 @@ def dashboard_view(request):
 def view_slots_view(request):
     """Render the available slots page."""
     today = timezone.now().date()
-    slots = Slot.objects.filter(date__gte=today)
+    all_slots = Slot.objects.filter(date__gte=today)
+    
+    paginator = Paginator(all_slots, 10)  # Show 10 slots per page
+    page_number = request.GET.get('page', 1)
+    slots = paginator.get_page(page_number)
+    
     return render(request, 'gym/slots.html', {'slots': slots})
 
 @login_required

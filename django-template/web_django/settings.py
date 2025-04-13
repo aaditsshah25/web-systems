@@ -127,8 +127,5 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Add near the bottom of your settings.py file
-STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "gym" / "static",
-]
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_URL = 'login_page'

@@ -14,11 +14,6 @@
 </h1>
 {% endblock %}
 
-<!-- Change in slots.html and bookings.html -->
-<td>{{ slot.date|date:"D, j M Y" }}</td>
-<td>{{ slot.start_time|time:"g:i A" }}</td>
-<td>{{ slot.end_time|time:"g:i A" }}</td>
-
 <!-- Add to your forms -->
 <button type="submit" class="btn" id="submitBtn">
     <span id="btnText">Book</span>
@@ -34,27 +29,6 @@ document.querySelector('form').addEventListener('submit', function() {
     document.getElementById('btnLoading').style.display = 'inline-block';
 });
 </script>
-
-# Add to views.py
-@login_required
-def view_bookings_view(request):
-    """Render the user's bookings page with search capability."""
-    search_query = request.GET.get('search', '')
-    date_filter = request.GET.get('date', '')
-    
-    bookings = Booking.objects.filter(user=request.user).select_related('slot')
-    
-    if search_query:
-        bookings = bookings.filter(slot__date__icontains=search_query)
-    
-    if date_filter:
-        bookings = bookings.filter(slot__date=date_filter)
-        
-    return render(request, 'gym/bookings.html', {
-        'bookings': bookings,
-        'search_query': search_query,
-        'date_filter': date_filter
-    })
 
 # Modify view_slots_view in views.py
 from django.core.paginator import Paginator

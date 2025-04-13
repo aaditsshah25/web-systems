@@ -303,5 +303,15 @@
     <div class="container page-content">
         {% block content %}{% endblock %}
     </div>
+    <!-- Add to base.html before closing body tag -->
+    {% if messages %}
+    <div class="notifications">
+        {% for message in messages %}
+        <div class="notification {% if message.tags %}{{ message.tags }}{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </body>
 </html>
