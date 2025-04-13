@@ -3,6 +3,8 @@ import sys
 import subprocess
 import time
 import webbrowser
+import signal
+import threading
 
 def clear_screen():
     """Clear the terminal screen."""
@@ -37,48 +39,112 @@ def setup_database():
     
     print("\nDatabase setup complete!")
 
-def run_all():
-    """Run the entire system with multiple terminals."""
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Start Django server in a new terminal
+# Global variables to store server processes
+django_process = None
+socket_process = None
+
+def run_django_server():
+    """Run the Django server as a background process."""
+    global django_process
     print("Starting Django server...")
+    
     if os.name == 'nt':  # Windows
-        django_cmd = f'start cmd /k "cd /d {project_dir} && python manage.py runserver"'
+        django_process = subprocess.Popen(
+            ["python", "manage.py", "runserver"],
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
     else:  # Linux/Mac
-        django_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && python manage.py runserver; bash"'
-    os.system(django_cmd)
+        django_process = subprocess.Popen(
+            ["python", "manage.py", "runserver"],
+            preexec_fn=os.setsid,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+    
+    # Create a thread to monitor and log server output
+    def monitor_output():
+        for line in iter(django_process.stdout.readline, b''):
+            print(f"Django: {line.decode().strip()}")
+    
+    threading.Thread(target=monitor_output, daemon=True).start()
+
+def run_socket_server():
+    """Run the Socket server as a background process."""
+    global socket_process
+    print("Starting Socket server...")
+    
+    if os.name == 'nt':  # Windows
+        socket_process = subprocess.Popen(
+            ["python", "-m", "gym.socket_server"],
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+    else:  # Linux/Mac
+        socket_process = subprocess.Popen(
+            ["python", "-m", "gym.socket_server"],
+            preexec_fn=os.setsid,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+    
+    # Create a thread to monitor and log server output
+    def monitor_output():
+        for line in iter(socket_process.stdout.readline, b''):
+            print(f"Socket: {line.decode().strip()}")
+    
+    threading.Thread(target=monitor_output, daemon=True).start()
+
+def run_all():
+    """Run the entire system with servers in background."""
+    # Start Django server as a background process
+    run_django_server()
     
     # Give Django server time to start
     time.sleep(2)
     
-    # Start Socket server in a new terminal
-    print("Starting Socket server...")
-    if os.name == 'nt':  # Windows
-        socket_cmd = f'start cmd /k "cd /d {project_dir} && python -m gym.socket_server"'
-    else:  # Linux/Mac
-        socket_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && python -m gym.socket_server; bash"'
-    os.system(socket_cmd)
+    # Start Socket server as a background process
+    run_socket_server()
+    
+    time.sleep(1)
+    
+    # Open client website in browser
+    print("Opening client website in browser...")
+    webbrowser.open("http://127.0.0.1:8000/")
     
     # Open admin in browser
     print("Opening admin interface in browser...")
     webbrowser.open("http://127.0.0.1:8000/admin/")
     
-    # Open a terminal for API client demos
-    print("Opening terminal for API client...")
-    if os.name == 'nt':  # Windows
-        api_client_cmd = f'start cmd /k "cd /d {project_dir} && echo API Client Commands: && echo python -m gym.api_client register testuser password && echo python -m gym.api_client login testuser password && echo python -m gym.api_client slots && echo python -m gym.api_client book 1 && echo python -m gym.api_client my-bookings"'
-    else:  # Linux/Mac
-        api_client_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && echo API Client Commands: && echo python -m gym.api_client register testuser password && echo python -m gym.api_client login testuser password && echo python -m gym.api_client slots && echo python -m gym.api_client book 1 && echo python -m gym.api_client my-bookings; bash"'
-    os.system(api_client_cmd)
+    print("\nServers are running in the background.")
+    print("Press Ctrl+C to stop all servers and exit.")
     
-    # Open a terminal for Socket client demos
-    print("Opening terminal for Socket client...")
-    if os.name == 'nt':  # Windows
-        socket_client_cmd = f'start cmd /k "cd /d {project_dir} && echo Socket Client Commands: && echo python -m gym.socket_client register testuser2 password && echo python -m gym.socket_client login testuser2 password && echo python -m gym.socket_client list-slots && echo python -m gym.socket_client book 1 && echo python -m gym.socket_client my-bookings"'
-    else:  # Linux/Mac
-        socket_client_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && echo Socket Client Commands: && echo python -m gym.socket_client register testuser2 password && echo python -m gym.socket_client login testuser2 password && echo python -m gym.socket_client list-slots && echo python -m gym.socket_client book 1 && echo python -m gym.socket_client my-bookings; bash"'
-    os.system(socket_client_cmd)
+    # Keep the main process running until Ctrl+C
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        cleanup()
+
+def cleanup():
+    """Stop all server processes."""
+    print("\nStopping servers...")
+    
+    if django_process:
+        if os.name == 'nt':  # Windows
+            os.kill(django_process.pid, signal.CTRL_BREAK_EVENT)
+        else:  # Linux/Mac
+            os.killpg(os.getpgid(django_process.pid), signal.SIGTERM)
+    
+    if socket_process:
+        if os.name == 'nt':  # Windows
+            os.kill(socket_process.pid, signal.CTRL_BREAK_EVENT)
+        else:  # Linux/Mac
+            os.killpg(os.getpgid(socket_process.pid), signal.SIGTERM)
+    
+    print("All servers stopped.")
 
 def main():
     """Main function."""
@@ -108,51 +174,12 @@ def main():
     
     if response == 'y':
         run_all()
-        print("\nAll components are now running!")
-        print("\nTo stop all servers, close the terminal windows or press Ctrl+C in each.")
     else:
         print("\nTo run the system manually:")
         print("1. Start Django server: python manage.py runserver")
         print("2. Start Socket server: python -m gym.socket_server")
         print("3. Use API client: python -m gym.api_client <command>")
         print("4. Use Socket client: python -m gym.socket_client <command>")
-
-# ...existing code...
-
-def run_all():
-    """Run the entire system with multiple terminals."""
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Start Django server in a new terminal
-    print("Starting Django server...")
-    if os.name == 'nt':  # Windows
-        django_cmd = f'start cmd /k "cd /d {project_dir} && python manage.py runserver"'
-    else:  # Linux/Mac
-        django_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && python manage.py runserver; bash"'
-    os.system(django_cmd)
-    
-    # Give Django server time to start
-    time.sleep(2)
-    
-    # Start Socket server in a new terminal
-    print("Starting Socket server...")
-    if os.name == 'nt':  # Windows
-        socket_cmd = f'start cmd /k "cd /d {project_dir} && python -m gym.socket_server"'
-    else:  # Linux/Mac
-        socket_cmd = f'gnome-terminal -- bash -c "cd {project_dir} && python -m gym.socket_server; bash"'
-    os.system(socket_cmd)
-    
-    # ...existing code...
-
-    # Open client website in browser
-    print("Opening client website in browser...")
-    webbrowser.open("http://127.0.0.1:8000/")  # Changed from /api/ to /
-    
-    # Open admin in browser
-    print("Opening admin interface in browser...")
-    webbrowser.open("http://127.0.0.1:8000/admin/")
-    
-    # ...rest of existing code...
 
 if __name__ == "__main__":
     main()
