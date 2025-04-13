@@ -8,6 +8,12 @@ from django.utils import timezone
 
 from .models import Slot, Booking
 
+import os
+import socket
+import threading
+import datetime
+import django
+
 @csrf_exempt
 def register_view(request):
     """API endpoint for user registration."""

@@ -1,14 +1,16 @@
 import requests
 import json
 import argparse
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.db import IntegrityError
 
 class GymBookingClient:
     """Client for interacting with the Gym Booking API."""
     
-    def __init__(self, base_url='http://127.0.0.1:8000/api'):
+    def __init__(self, base_url='http://127.0.0.1:8000'):
         self.base_url = base_url
-        self.session = requests.Session()
-        self.token = None  # For token-based auth (not implemented in basic version)
     
     def register(self, username, password, email=None):
         """Register a new user."""
@@ -59,6 +61,26 @@ class GymBookingClient:
     def pretty_print(self, data):
         """Pretty print JSON data."""
         print(json.dumps(data, indent=4))
+
+@csrf_exempt
+def register_view(request):
+    """API endpoint for user registration."""
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        email = data.get('email', '')
+        
+        if not username or not password:
+            return JsonResponse({'error': 'Username and password are required'}, status=400)
+        
+        try:
+            user = User.objects.create_user(username=username, email=email, password=password)
+            return JsonResponse({'success': True, 'user_id': user.id})
+        except IntegrityError:
+            return JsonResponse({'error': 'Username already taken'}, status=400)
+    
+    return JsonResponse({'error': 'Only POST method is allowed'}, status=405)
 
 def main():
     """Command-line interface for the client."""

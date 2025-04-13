@@ -16,9 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from gym.admin import gym_admin_site
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('gym.urls')),  # Keep API endpoints
-    path('', include('gym.urls')),  # Add root paths for web interface
+    path('gym-admin/', gym_admin_site.urls),  # Custom admin URL
+    path('', include('gym.urls')),
 ]

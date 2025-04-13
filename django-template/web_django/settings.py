@@ -57,7 +57,7 @@ ROOT_URLCONF = "web_django.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "gym" / "templates"],  # Update this line
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -124,3 +124,9 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Add near the bottom of your settings.py file
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "gym" / "static",
+]

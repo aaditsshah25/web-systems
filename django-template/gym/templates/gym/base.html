@@ -1,88 +1,305 @@
+.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gym Booking System{% endblock %}</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        :root {
+            --primary: #3a86ff;
+            --primary-dark: #2667cc;
+            --secondary: #8338ec;
+            --success: #06d6a0;
+            --danger: #ef476f;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --shadow: rgba(0, 0, 0, 0.05);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
         }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--dark);
+            background-color: var(--light);
+            margin: 0;
+            padding: 0;
+        }
+        
         .container {
-            width: 80%;
+            width: 90%;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 20px;
         }
+        
         .navbar {
-            background-color: #333;
-            color: white;
-            padding: 15px;
-            margin-bottom: 20px;
+            background-color: white;
+            box-shadow: 0 2px 10px var(--shadow);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .navbar a {
-            color: white;
-            margin-right: 15px;
+        
+        .navbar-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
             text-decoration: none;
         }
+        
+        .navbar-links {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .navbar a {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 5px 0;
+            position: relative;
+        }
+        
+        .navbar a:hover {
+            color: var(--primary);
+        }
+        
+        .navbar a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: var(--transition);
+        }
+        
+        .navbar a:hover::after {
+            width: 100%;
+        }
+        
+        .page-content {
+            padding: 40px 0;
+        }
+        
         .card {
             background-color: white;
-            border-radius: 5px;
-            padding: 20px;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+        
+        h1, h2, h3 {
             margin-bottom: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-weight: 600;
+            color: var(--dark);
         }
+        
+        h1 {
+            font-size: 2.2rem;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+        }
+        
+        p {
+            margin-bottom: 20px;
+            color: var(--gray);
+        }
+        
         .btn {
-            background-color: #4CAF50;
+            display: inline-block;
+            background-color: var(--primary);
             color: white;
-            padding: 10px 15px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: var(--border-radius);
             cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+            text-align: center;
         }
+        
         .btn:hover {
-            background-color: #45a049;
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
         }
+        
+        .btn-success {
+            background-color: var(--success);
+        }
+        
+        .btn-success:hover {
+            background-color: #05b085;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+        }
+        
+        .btn-danger:hover {
+            background-color: #d13963;
+        }
+        
         .error {
-            color: red;
-            margin-bottom: 10px;
+            color: var(--danger);
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(239, 71, 111, 0.1);
+            border-radius: var(--border-radius);
         }
+        
+        .success-message {
+            color: var(--success);
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(6, 214, 160, 0.1);
+            border-radius: var(--border-radius);
+        }
+        
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-top: 5px;
+            margin-bottom: 20px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            font-family: 'Inter', sans-serif;
+            transition: var(--transition);
+        }
+        
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+        }
+        
+        label {
+            font-weight: 500;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 20px;
         }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
+        
         th {
-            background-color: #f2f2f2;
+            background-color: var(--gray-light);
+            font-weight: 600;
+            text-align: left;
+            padding: 15px;
         }
+        
+        th:first-child {
+            border-top-left-radius: var(--border-radius);
+        }
+        
+        th:last-child {
+            border-top-right-radius: var(--border-radius);
+        }
+        
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:last-child td:first-child {
+            border-bottom-left-radius: var(--border-radius);
+        }
+        
+        tr:last-child td:last-child {
+            border-bottom-right-radius: var(--border-radius);
+        }
+        
         tr:hover {
-            background-color: #f5f5f5;
+            background-color: rgba(0, 0, 0, 0.01);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .navbar-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .card {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <div class="container">
-            <a href="{% url 'home' %}">Gym Booking System</a>
-            {% if user.is_authenticated %}
-                <a href="{% url 'dashboard' %}">Dashboard</a>
-                <a href="{% url 'view_slots' %}">Available Slots</a>
-                <a href="{% url 'view_bookings' %}">My Bookings</a>
-                <a href="{% url 'logout_view' %}">Logout</a>
-            {% else %}
-                <a href="{% url 'login_page' %}">Login</a>
-                <a href="{% url 'register_page' %}">Register</a>
-            {% endif %}
+    <nav class="navbar">
+        <div class="container navbar-content">
+            <a href="{% url 'home' %}" class="navbar-brand">Gym Booking</a>
+            <div class="navbar-links">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}">Dashboard</a>
+                    <a href="{% url 'view_slots' %}">Available Slots</a>
+                    <a href="{% url 'view_bookings' %}">My Bookings</a>
+                    <a href="{% url 'logout_view' %}">Logout</a>
+                {% else %}
+                    <a href="{% url 'login_page' %}">Login</a>
+                    <a href="{% url 'register_page' %}">Register</a>
+                {% endif %}
+            </div>
         </div>
-    </div>
+    </nav>
     
-    <div class="container">
+    <div class="container page-content">
         {% block content %}{% endblock %}
     </div>
 </body>
