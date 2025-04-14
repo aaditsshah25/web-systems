@@ -111,13 +111,25 @@ def run_all():
     
     time.sleep(1)
     
-    # Open client website in browser
-    print("Opening client website in browser...")
-    webbrowser.open("http://127.0.0.1:8000/")
+    # Ask user which interface they want to open
+    print("\nWhich interface would you like to open?")
+    print("1. User interface (for gym members)")
+    print("2. Admin interface (for administrators)")
+    print("3. Both interfaces")
     
-    # Open admin in browser
-    print("Opening admin interface in browser...")
-    webbrowser.open("http://127.0.0.1:8000/admin/")
+    while True:
+        choice = input("Enter your choice (1-3): ").strip()
+        
+        if choice == '1':
+            print("Opening user interface in browser...")
+            webbrowser.open("http://127.0.0.1:8000/")
+            break
+        elif choice == '2':
+            print("Opening admin interface in browser...")
+            webbrowser.open("http://127.0.0.1:8000/admin/")
+            break
+        else:
+            print("Invalid choice. Please enter 1, 2, or 3.")
     
     print("\nServers are running in the background.")
     print("Press Ctrl+C to stop all servers and exit.")
@@ -171,16 +183,16 @@ def main():
     
     # Ask user if they want to run the system
     print("\nSetup complete! Ready to run the system.")
-    response = input("Start all servers now? (y/n): ").lower()
+    # response = input("Start all servers now? (y/n): ").lower()
     
-    if response == 'y':
-        run_all()
-    else:
-        print("\nTo run the system manually:")
-        print("1. Start Django server: python manage.py runserver")
-        print("2. Start Socket server: python -m gym.socket_server")
-        print("3. Use API client: python -m gym.api_client <command>")
-        print("4. Use Socket client: python -m gym.socket_client <command>")
+    # if response == 'y':
+    run_all()
+    # else:
+    #     print("\nTo run the system manually:")
+    #     print("1. Start Django server: python manage.py runserver")
+    #     print("2. Start Socket server: python -m gym.socket_server")
+    #     print("3. Use API client: python -m gym.api_client <command>")
+    #     print("4. Use Socket client: python -m gym.socket_client <command>")
 
 if __name__ == "__main__":
     main()
