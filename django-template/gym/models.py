@@ -28,3 +28,13 @@ class Booking(models.Model):
     
     class Meta:
         unique_together = ('user', 'slot')
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    # Removed profile_picture field
+    
+    def __str__(self):
+        return f"{self.user.username}'s Profile"

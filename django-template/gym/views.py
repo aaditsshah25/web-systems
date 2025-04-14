@@ -154,6 +154,10 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.http import HttpResponse
+from django.contrib.auth.hashers import check_password
+from django.contrib import messages
+from .models import UserProfile
 
 def home_view(request):
     """Render the home page."""
@@ -272,3 +276,44 @@ def book_slot_web_view(request):
             })
     
     return redirect('view_slots')
+
+@login_required
+def delete_slot_view(request, slot_id):
+    """Delete a slot (admin only)."""
+    if not request.user.is_staff:
+        return redirect('view_slots')
+    
+    try:
+        with transaction.atomic():
+            slot = Slot.objects.get(id=slot_id)
+            # First delete all bookings associated with this slot
+            Booking.objects.filter(slot=slot).delete()
+            # Then delete the slot
+            slot.delete()
+            return render(request, 'gym/slots.html', {
+                'slots': Slot.objects.filter(date__gte=timezone.now().date()),
+                'message': 'Slot deleted successfully!',
+                'success': True
+            })
+    except Slot.DoesNotExist:
+        return render(request, 'gym/slots.html', {
+            'slots': Slot.objects.filter(date__gte=timezone.now().date()),
+            'message': 'Slot not found',
+            'success': False
+        })
+
+
+# Modify view_slots_view in views.py
+from django.core.paginator import Paginator
+
+@login_required
+def view_slots_view(request):
+    """Render the available slots page with pagination."""
+    today = timezone.now().date()
+    all_slots = Slot.objects.filter(date__gte=today)
+    
+    paginator = Paginator(all_slots, 10)  # Show 10 slots per page
+    page_number = request.GET.get('page', 1)
+    slots = paginator.get_page(page_number)
+    
+    return render(request, 'gym/slots.html', {'slots': slots})

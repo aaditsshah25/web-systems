@@ -29,18 +29,3 @@ document.querySelector('form').addEventListener('submit', function() {
     document.getElementById('btnLoading').style.display = 'inline-block';
 });
 </script>
-
-# Modify view_slots_view in views.py
-from django.core.paginator import Paginator
-
-@login_required
-def view_slots_view(request):
-    """Render the available slots page with pagination."""
-    today = timezone.now().date()
-    all_slots = Slot.objects.filter(date__gte=today)
-    
-    paginator = Paginator(all_slots, 10)  # Show 10 slots per page
-    page_number = request.GET.get('page', 1)
-    slots = paginator.get_page(page_number)
-    
-    return render(request, 'gym/slots.html', {'slots': slots})

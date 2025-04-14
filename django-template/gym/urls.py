@@ -18,4 +18,4 @@ urlpatterns = [
     path('view-slots/', views.view_slots_view, name='view_slots'),
     path('view-bookings/', views.view_bookings_view, name='view_bookings'),
     path('book-slot-web/', views.book_slot_web_view, name='book_slot_web'),
-]
+    ]
