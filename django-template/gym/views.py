@@ -8,12 +8,6 @@ from django.utils import timezone
 
 from .models import Slot, Booking
 
-import os
-import socket
-import threading
-import datetime
-import django
-
 @csrf_exempt
 def register_view(request):
     """API endpoint for user registration."""
@@ -99,11 +93,11 @@ def book_slot_view(request):
                 if slot.available <= 0:
                     return JsonResponse({'error': 'No available space in this slot'}, status=400)
                 
-                # Check if user already has a booking for this slot
+                # Check if user already has a booking
                 if Booking.objects.filter(user=request.user, slot=slot).exists():
                     return JsonResponse({'error': 'You already have a booking for this slot'}, status=400)
                 
-                # Create booking and update slot availability
+                # Create booking
                 booking = Booking.objects.create(user=request.user, slot=slot)
                 slot.available -= 1
                 slot.save()
@@ -111,10 +105,7 @@ def book_slot_view(request):
                 return JsonResponse({
                     'success': True,
                     'booking_id': booking.id,
-                    'slot_id': slot.id,
-                    'date': slot.date.strftime('%Y-%m-%d'),
-                    'start_time': slot.start_time.strftime('%H:%M'),
-                    'end_time': slot.end_time.strftime('%H:%M')
+                    'slot_info': f"{slot.date} {slot.start_time}-{slot.end_time}"
                 })
                 
         except Slot.DoesNotExist:
@@ -213,7 +204,7 @@ def dashboard_view(request):
 
 @login_required
 def view_slots_view(request):
-    """Render the available slots page."""
+    """Render the available slots page with pagination."""
     today = timezone.now().date()
     all_slots = Slot.objects.filter(date__gte=today)
     
@@ -235,38 +226,31 @@ def book_slot_web_view(request):
     if request.method == 'POST':
         slot_id = request.POST.get('slot_id')
         
+        # Complete the error check and try block:
         if not slot_id:
+            messages.error(request, 'Slot ID is required')
             return redirect('view_slots')
-        
+
         try:
             with transaction.atomic():
                 slot = Slot.objects.select_for_update().get(id=slot_id)
                 
                 if slot.available <= 0:
-                    return render(request, 'gym/slots.html', {
-                        'slots': Slot.objects.filter(date__gte=timezone.now().date()),
-                        'message': 'No available space in this slot',
-                        'success': False
-                    })
+                    messages.error(request, 'No available space in this slot')
+                    return redirect('view_slots')
                 
-                # Check if user already has a booking for this slot
+                # Check if user already has a booking
                 if Booking.objects.filter(user=request.user, slot=slot).exists():
-                    return render(request, 'gym/slots.html', {
-                        'slots': Slot.objects.filter(date__gte=timezone.now().date()),
-                        'message': 'You already have a booking for this slot',
-                        'success': False
-                    })
+                    messages.error(request, 'You already have a booking for this slot')
+                    return redirect('view_slots')
                 
-                # Create booking and update slot availability
+                # Create booking
                 booking = Booking.objects.create(user=request.user, slot=slot)
                 slot.available -= 1
                 slot.save()
                 
-                return render(request, 'gym/slots.html', {
-                    'slots': Slot.objects.filter(date__gte=timezone.now().date()),
-                    'message': 'Slot booked successfully!',
-                    'success': True
-                })
+                messages.success(request, f'Successfully booked slot on {slot.date} from {slot.start_time} to {slot.end_time}')
+                return redirect('view_bookings')
                 
         except Slot.DoesNotExist:
             return render(request, 'gym/slots.html', {
@@ -285,35 +269,15 @@ def delete_slot_view(request, slot_id):
     
     try:
         with transaction.atomic():
-            slot = Slot.objects.get(id=slot_id)
-            # First delete all bookings associated with this slot
-            Booking.objects.filter(slot=slot).delete()
-            # Then delete the slot
+            slot = Slot.objects.select_for_update().get(id=slot_id)
+            # Delete associated bookings first
+            if Booking.objects.filter(slot=slot).exists():
+                Booking.objects.filter(slot=slot).delete()
             slot.delete()
-            return render(request, 'gym/slots.html', {
-                'slots': Slot.objects.filter(date__gte=timezone.now().date()),
-                'message': 'Slot deleted successfully!',
-                'success': True
-            })
+            return redirect('view_slots')
     except Slot.DoesNotExist:
         return render(request, 'gym/slots.html', {
             'slots': Slot.objects.filter(date__gte=timezone.now().date()),
             'message': 'Slot not found',
             'success': False
         })
-
-
-# Modify view_slots_view in views.py
-from django.core.paginator import Paginator
-
-@login_required
-def view_slots_view(request):
-    """Render the available slots page with pagination."""
-    today = timezone.now().date()
-    all_slots = Slot.objects.filter(date__gte=today)
-    
-    paginator = Paginator(all_slots, 10)  # Show 10 slots per page
-    page_number = request.GET.get('page', 1)
-    slots = paginator.get_page(page_number)
-    
-    return render(request, 'gym/slots.html', {'slots': slots})
