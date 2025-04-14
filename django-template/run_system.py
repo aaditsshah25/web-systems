@@ -5,6 +5,7 @@ import time
 import webbrowser
 import signal
 import threading
+import django
 
 def clear_screen():
     """Clear the terminal screen."""

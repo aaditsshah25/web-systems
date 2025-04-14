@@ -14,6 +14,21 @@
 </h1>
 {% endblock %}
 
+<div class="navbar-content">
+  <a href="{% url 'home' %}" class="navbar-brand">Gym Booking</a>
+  <div class="navbar-links">
+    {% if user.is_authenticated %}
+      <a href="{% url 'dashboard' %}">Dashboard</a>
+      <a href="{% url 'view_slots' %}">Available Slots</a>
+      <a href="{% url 'view_bookings' %}">My Bookings</a>
+      <a href="{% url 'logout_view' %}">Logout</a>
+    {% else %}
+      <a href="{% url 'login_page' %}">Login</a>
+      <a href="{% url 'register_page' %}">Register</a>
+    {% endif %}
+  </div>
+</div>
+
 <!-- Add to your forms -->
 <button type="submit" class="btn" id="submitBtn">
     <span id="btnText">Book</span>

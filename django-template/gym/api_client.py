@@ -10,8 +10,8 @@ class GymBookingClient:
     """Client for interacting with the Gym Booking API."""
     
     def __init__(self, base_url='http://127.0.0.1:8000'):
-    self.base_url = base_url
-    self.session = requests.Session()  # Add this line
+        self.base_url = base_url
+        self.session = requests.Session()  # Add this line
     
     def register(self, username, password, email=None):
         """Register a new user."""
