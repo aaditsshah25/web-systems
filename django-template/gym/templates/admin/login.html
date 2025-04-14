@@ -1,0 +1,22 @@
+{% extends "admin/login.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/custom_admin.css' %}">
+<style>
+    /* Inline styles as backup */
+    .login #header h1,
+    .login label,
+    .login .form-row,
+    #content h1, 
+    #content label,
+    #content .form-row {
+        color: #000000 !important;
+        font-weight: bold !important;
+    }
+    body.login {
+        background-color: #f8f8f8;
+    }
+</style>
+{% endblock %}

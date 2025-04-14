@@ -2,6 +2,18 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from .models import Slot, Booking
 
+# Add custom CSS to admin
+class CustomAdminSite(AdminSite):
+    def each_context(self, request):
+        context = super().each_context(request)
+        context['extra_css'] = [
+            'admin/css/custom_admin.css',
+        ]
+        return context
+
+# Replace the default admin site
+admin.site.__class__ = CustomAdminSite
+
 class GymAdminSite(AdminSite):
     site_header = 'Gym Booking Administration'
     site_title = 'Gym Booking Admin'

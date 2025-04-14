@@ -1,0 +1,25 @@
+/* Fix admin login font visibility */
+.login #header h1,
+.login label,
+.login .form-row,
+#content h1,
+#content label,
+#content .form-row,
+.login .submit-row,
+#content .submit-row {
+    color: #000000 !important; /* Black text */
+    font-weight: bold;
+}
+
+/* Ensure background provides contrast */
+.login,
+#content {
+    background-color: #f8f8f8;
+}
+
+/* Make links visible */
+.login a,
+#content a {
+    color: #0056b3 !important;
+    text-decoration: underline;
+}
