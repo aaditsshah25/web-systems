@@ -1,0 +1,108 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}{{ trainer.name }} - Trainer Profile{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="trainer-profile">
+        {% if trainer.image %}
+        <img src="{{ trainer.image.url }}" alt="{{ trainer.name }}" class="trainer-detail-image">
+        {% endif %}
+        <div class="trainer-info">
+            <h2>{{ trainer.name }}</h2>
+            <p class="trainer-detail-specialization">{{ trainer.specialization }}</p>
+            {% if trainer.bio %}
+            <div class="trainer-detail-bio">
+                <h3>About</h3>
+                <p>{{ trainer.bio }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <h3 class="upcoming-classes-title">Upcoming Classes</h3>
+    {% if upcoming_classes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Class</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Available Spots</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for class in upcoming_classes %}
+            <tr>
+                <td>{{ class.class_type.name }}</td>
+                <td>{{ class.date|date:"D, j M Y" }}</td>
+                <td>{{ class.start_time|time:"g:i A" }} - {{ class.end_time|time:"g:i A" }}</td>
+                <td>{{ class.available }} / {{ class.capacity }}</td>
+                <td>
+                    {% if class.available > 0 %}
+                    <form method="post" action="{% url 'book_special_class' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="class_slot_id" value="{{ class.id }}">
+                        <button type="submit" class="btn">Book</button>
+                    </form>
+                    {% else %}
+                    <span style="color: red;">Full</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No upcoming classes scheduled with this trainer.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trainer-profile {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+    
+    .trainer-detail-image {
+        width: 250px;
+        height: 250px;
+        object-fit: cover;
+        border-radius: var(--border-radius);
+    }
+    
+    .trainer-info {
+        flex: 1;
+        min-width: 300px;
+    }
+    
+    .trainer-detail-specialization {
+        color: var(--primary);
+        font-weight: 500;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+    
+    .trainer-detail-bio {
+        margin-top: 20px;
+    }
+    
+    .upcoming-classes-title {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-light);
+    }
+    
+    @media (max-width: 768px) {
+        .trainer-detail-image {
+            width: 100%;
+            height: auto;
+        }
+    }
+</style>
+{% endblock %}

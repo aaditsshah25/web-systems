@@ -1,0 +1,148 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Gym Calendar{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Gym Schedule Calendar</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Book Slot</h3>
+            <p id="slot-details"></p>
+            <form id="booking-form" method="post" action="{% url 'book_slot_web' %}">
+                {% csrf_token %}
+                <input type="hidden" id="slot-id-input" name="slot_id" value="">
+                <button type="submit" class="btn">Confirm Booking</button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="calendar"></div>
+</div>
+
+<style>
+    /* Calendar customizations */
+    #calendar {
+        margin: 20px 0;
+        height: 650px;
+    }
+    
+    .fc-event {
+        cursor: pointer;
+        padding: 5px;
+        border-radius: var(--border-radius);
+    }
+    
+    .fc-event.available {
+        background-color: #06d6a0;
+        border-color: #05b085;
+    }
+    
+    .fc-event.full {
+        background-color: #ef476f;
+        border-color: #d13963;
+    }
+    
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+    
+    .modal-content {
+        background-color: white;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 50%;
+        border-radius: var(--border-radius);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close:hover {
+        color: black;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal functionality
+        const modal = document.getElementById('booking-modal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+        const slotDetails = document.getElementById('slot-details');
+        const slotIdInput = document.getElementById('slot-id-input');
+        
+        closeBtn.onclick = function() {
+            modal.style.display = "none";
+        }
+        
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+        
+        // Initialize calendar
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: '/api/calendar-slots/',
+            eventClick: function(info) {
+                const event = info.event;
+                const available = event.extendedProps.available;
+                const capacity = event.extendedProps.capacity;
+                
+                if (available <= 0) {
+                    alert("This slot is already full.");
+                    return;
+                }
+                
+                slotDetails.textContent = `Date: ${event.start.toLocaleDateString()}, Time: ${event.start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${event.end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}, Available: ${available}/${capacity}`;
+                slotIdInput.value = event.id;
+                modal.style.display = "block";
+            },
+            eventClassNames: function(arg) {
+                return arg.event.extendedProps.available > 0 ? ['available'] : ['full'];
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+{% endblock %}

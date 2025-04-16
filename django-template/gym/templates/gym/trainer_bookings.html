@@ -1,0 +1,37 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}My Special Class Bookings{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>My Special Class Bookings</h2>
+    
+    {% if bookings %}
+    <table>
+        <thead>
+            <tr>
+                <th>Class</th>
+                <th>Trainer</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Booked At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>{{ booking.class_slot.class_type.name }}</td>
+                <td>{{ booking.class_slot.trainer.name }}</td>
+                <td>{{ booking.class_slot.date|date:"D, j M Y" }}</td>
+                <td>{{ booking.class_slot.start_time|time:"g:i A" }} - {{ booking.class_slot.end_time|time:"g:i A" }}</td>
+                <td>{{ booking.booked_at|date:"j M Y, g:i A" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>You don't have any special class bookings yet.</p>
+    <a href="{% url 'view_special_classes' %}" class="btn">Book a Special Class</a>
+    {% endif %}
+</div>
+{% endblock %}

@@ -38,6 +38,15 @@ def setup_database():
         print("\n=== Creating initial gym slots ===")
         os.system("python -m gym.createslots")
     
+    # Check if trainers and class types exist or create them
+    try:
+        from gym.models import Trainer, ClassType
+        if Trainer.objects.count() == 0 or ClassType.objects.count() == 0:
+            print("\n=== Creating trainers and special classes ===")
+            os.system("python manage.py create_trainers_classes")
+    except ImportError:
+        print("New models not yet available. Will be created after migrations.")
+    
     print("\nDatabase setup complete!")
 
 # Global variables to store server processes

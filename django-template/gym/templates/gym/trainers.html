@@ -1,0 +1,80 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Our Trainers{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Our Trainers</h2>
+    
+    <div class="trainers-grid">
+        {% for trainer in trainers %}
+        <div class="trainer-card">
+            {% if trainer.image %}
+            <img src="{{ trainer.image.url }}" alt="{{ trainer.name }}" class="trainer-image">
+            {% else %}
+            <div class="trainer-image-placeholder"></div>
+            {% endif %}
+            <h3>{{ trainer.name }}</h3>
+            <p class="trainer-specialization">{{ trainer.specialization }}</p>
+            {% if trainer.bio %}
+            <p class="trainer-bio">{{ trainer.bio|truncatechars:100 }}</p>
+            {% endif %}
+            <a href="{% url 'trainer_detail' trainer.id %}" class="btn">View Profile</a>
+        </div>
+        {% empty %}
+        <p>No trainers available at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trainers-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    
+    .trainer-card {
+        background-color: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: 0 3px 10px var(--shadow);
+        transition: transform 0.3s ease;
+        padding-bottom: 15px;
+    }
+    
+    .trainer-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .trainer-image, .trainer-image-placeholder {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background-color: #f0f0f0;
+    }
+    
+    .trainer-card h3 {
+        margin: 15px 15px 5px;
+    }
+    
+    .trainer-specialization {
+        color: var(--primary);
+        font-weight: 500;
+        margin: 0 15px 10px;
+    }
+    
+    .trainer-bio {
+        margin: 0 15px 15px;
+        color: var(--gray);
+        font-size: 0.9rem;
+    }
+    
+    .trainer-card .btn {
+        margin: 0 15px;
+    }
+</style>
+{% endblock %}

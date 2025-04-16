@@ -7,9 +7,12 @@
     <h2>Welcome, {{ user.username }}!</h2>
     <p>From here you can manage your gym bookings.</p>
     
-    <div style="display: flex; margin-top: 20px;">
-        <a href="{% url 'view_slots' %}" class="btn" style="margin-right: 10px;">View Available Slots</a>
-        <a href="{% url 'view_bookings' %}" class="btn">View My Bookings</a>
+    <div style="display: flex; margin-top: 20px; flex-wrap: wrap; gap: 10px;">
+        <a href="{% url 'view_slots' %}" class="btn">Regular Gym Slots</a>
+        <a href="{% url 'view_special_classes' %}" class="btn">Special Classes</a>
+        <a href="{% url 'trainers' %}" class="btn">Our Trainers</a>
+        <a href="{% url 'view_bookings' %}" class="btn">My Gym Bookings</a>
+        <a href="{% url 'view_trainer_bookings' %}" class="btn">My Class Bookings</a>
     </div>
 </div>
 {% endblock %}

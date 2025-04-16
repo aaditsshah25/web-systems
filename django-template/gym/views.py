@@ -141,14 +141,14 @@ def my_bookings_view(request):
 
 # ...existing code...
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.contrib.auth.hashers import check_password
 from django.contrib import messages
-from .models import UserProfile
+from .models import UserProfile, Slot, Booking, Trainer, ClassType, SpecialClassSlot, TrainerBooking
 
 def home_view(request):
     """Render the home page."""
@@ -281,3 +281,108 @@ def delete_slot_view(request, slot_id):
             'message': 'Slot not found',
             'success': False
         })
+
+from django.http import JsonResponse
+from django.utils import timezone
+import datetime
+
+@login_required
+def calendar_slots_api(request):
+    """API endpoint for calendar slots data."""
+    today = timezone.now().date()
+    # Get slots for next 90 days
+    end_date = today + datetime.timedelta(days=90)
+    slots = Slot.objects.filter(date__gte=today, date__lte=end_date)
+    
+    events = []
+    for slot in slots:
+        events.append({
+            'id': slot.id,
+            'title': f"Gym Slot ({slot.available}/{slot.capacity})",
+            'start': f"{slot.date}T{slot.start_time}",
+            'end': f"{slot.date}T{slot.end_time}",
+            'available': slot.available,
+            'capacity': slot.capacity,
+            # Add a color based on availability
+            'color': '#06d6a0' if slot.available > 0 else '#ef476f'
+        })
+    
+    return JsonResponse(events, safe=False)
+
+@login_required
+def calendar_view(request):
+    """Render the calendar view for booking slots."""
+    return render(request, 'gym/calendar_view.html')
+
+@login_required
+def view_special_classes_view(request):
+    """Render the available special classes page."""
+    today = timezone.now().date()
+    all_classes = SpecialClassSlot.objects.filter(date__gte=today)
+    
+    paginator = Paginator(all_classes, 10)  # Show 10 classes per page
+    page_number = request.GET.get('page', 1)
+    classes = paginator.get_page(page_number)
+    
+    return render(request, 'gym/special_classes.html', {'classes': classes})
+
+@login_required
+def book_special_class_view(request):
+    """Handle booking a special class."""
+    if request.method == 'POST':
+        class_slot_id = request.POST.get('class_slot_id')
+        
+        if not class_slot_id:
+            messages.error(request, 'Class ID is required')
+            return redirect('view_special_classes')
+
+        try:
+            with transaction.atomic():
+                class_slot = SpecialClassSlot.objects.select_for_update().get(id=class_slot_id)
+                
+                if class_slot.available <= 0:
+                    messages.error(request, 'No available space in this class')
+                    return redirect('view_special_classes')
+                
+                # Check if user already has a booking for this class
+                if TrainerBooking.objects.filter(user=request.user, class_slot=class_slot).exists():
+                    messages.error(request, 'You already have a booking for this class')
+                    return redirect('view_special_classes')
+                
+                # Create booking
+                booking = TrainerBooking.objects.create(user=request.user, class_slot=class_slot)
+                class_slot.available -= 1
+                class_slot.save()
+                
+                messages.success(request, f'Successfully booked {class_slot.class_type} class with {class_slot.trainer} on {class_slot.date} at {class_slot.start_time}')
+                return redirect('view_trainer_bookings')
+                
+        except SpecialClassSlot.DoesNotExist:
+            messages.error(request, 'Class not found')
+            return redirect('view_special_classes')
+    
+    return redirect('view_special_classes')
+
+@login_required
+def view_trainer_bookings_view(request):
+    """Render the user's trainer bookings page."""
+    bookings = TrainerBooking.objects.filter(user=request.user).select_related('class_slot', 'class_slot__trainer', 'class_slot__class_type')
+    return render(request, 'gym/trainer_bookings.html', {'bookings': bookings})
+
+@login_required
+def trainers_view(request):
+    """View all trainers."""
+    trainers = Trainer.objects.all()
+    return render(request, 'gym/trainers.html', {'trainers': trainers})
+
+@login_required
+def trainer_detail_view(request, trainer_id):
+    """View details of a specific trainer and their classes."""
+    trainer = get_object_or_404(Trainer, id=trainer_id)
+    today = timezone.now().date()
+    upcoming_classes = SpecialClassSlot.objects.filter(trainer=trainer, date__gte=today)
+    
+    return render(request, 'gym/trainer_detail.html', {
+        'trainer': trainer,
+        'upcoming_classes': upcoming_classes
+    })

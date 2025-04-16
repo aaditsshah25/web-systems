@@ -1,0 +1,77 @@
+{% extends 'gym/base.html' %}
+
+{% block title %}Special Classes{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Available Special Classes</h2>
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    {% if classes %}
+    <table>
+        <thead>
+            <tr>
+                <th>Class</th>
+                <th>Trainer</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Available Spots</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for class in classes %}
+            <tr>
+                <td>{{ class.class_type.name }}</td>
+                <td><a href="{% url 'trainer_detail' class.trainer.id %}">{{ class.trainer.name }}</a></td>
+                <td>{{ class.date|date:"D, j M Y" }}</td>
+                <td>{{ class.start_time|time:"g:i A" }} - {{ class.end_time|time:"g:i A" }}</td>
+                <td>{{ class.available }} / {{ class.capacity }}</td>
+                <td>
+                    {% if class.available > 0 %}
+                    <form method="post" action="{% url 'book_special_class' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="class_slot_id" value="{{ class.id }}">
+                        <button type="submit" class="btn">Book</button>
+                    </form>
+                    {% else %}
+                    <span style="color: red;">Full</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <!-- Pagination -->
+    {% if classes.has_other_pages %}
+    <div class="pagination">
+        {% if classes.has_previous %}
+            <a href="?page={{ classes.previous_page_number }}">&laquo; Previous</a>
+        {% endif %}
+        
+        {% for i in classes.paginator.page_range %}
+            {% if classes.number == i %}
+                <span class="current-page">{{ i }}</span>
+            {% else %}
+                <a href="?page={{ i }}">{{ i }}</a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if classes.has_next %}
+            <a href="?page={{ classes.next_page_number }}">Next &raquo;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p>No available special classes found.</p>
+    {% endif %}
+</div>
+{% endblock %}
