@@ -9,7 +9,7 @@ django.setup()
 from gym.models import Slot
 
 def create_slots():
-    """Create sample gym slots for the next 7 days."""
+    """Create sample gym slots for the next 21 days (3 weeks)."""
     print("Creating gym slots...")
     
     # Define time slots
@@ -22,9 +22,9 @@ def create_slots():
         ('18:00', '19:00'),
     ]
     
-    # Get dates for the next 7 days
+    # Get dates for the next 21 days (3 weeks)
     today = datetime.date.today()
-    dates = [today + datetime.timedelta(days=i) for i in range(7)]
+    dates = [today + datetime.timedelta(days=i) for i in range(21)]
     
     slots_created = 0
     

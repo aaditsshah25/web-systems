@@ -30,22 +30,18 @@ def setup_database():
     from django.contrib.auth.models import User
     if not User.objects.filter(is_superuser=True).exists():
         print("\n=== Creating admin superuser ===")
-        os.system("python manage.py createsuperuser")
+        os.system("python manage.py create_superuser")
     
-    # Check if slots exist or create them
-    from gym.models import Slot
-    if Slot.objects.count() == 0:
-        print("\n=== Creating initial gym slots ===")
-        os.system("python -m gym.createslots")
+    # Always create gym slots (existing slots won't be duplicated)
+    print("\n=== Creating gym slots ===")
+    os.system("python -m gym.createslots")
     
-    # Check if trainers and class types exist or create them
+    # Always create trainers and special classes (existing ones won't be duplicated)
     try:
-        from gym.models import Trainer, ClassType
-        if Trainer.objects.count() == 0 or ClassType.objects.count() == 0:
-            print("\n=== Creating trainers and special classes ===")
-            os.system("python manage.py create_trainers_classes")
-    except ImportError:
-        print("New models not yet available. Will be created after migrations.")
+        print("\n=== Creating trainers and special classes ===")
+        os.system("python manage.py create_trainers_classes")
+    except Exception as e:
+        print(f"Error creating trainers and classes: {e}")
     
     print("\nDatabase setup complete!")
 
@@ -124,10 +120,9 @@ def run_all():
     print("\nWhich interface would you like to open?")
     print("1. User interface (for gym members)")
     print("2. Admin interface (for administrators)")
-    print("3. Both interfaces")
     
     while True:
-        choice = input("Enter your choice (1-3): ").strip()
+        choice = input("Enter your choice 1 or 2: ").strip()
         
         if choice == '1':
             print("Opening user interface in browser...")
@@ -138,7 +133,7 @@ def run_all():
             webbrowser.open("http://127.0.0.1:8000/admin/")
             break
         else:
-            print("Invalid choice. Please enter 1, 2, or 3.")
+            print("Invalid choice. Please enter 1 or 2")
     
     print("\nServers are running in the background.")
     print("Press Ctrl+C to stop all servers and exit.")
