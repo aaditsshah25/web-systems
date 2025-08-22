@@ -44,5 +44,3 @@ This project is licensed under the MIT License – feel free to use, modify, or 
 
 Thanks to the instructors and peers in the Web Systems class for their guidance and feedback throughout the project.
 
-
-Do you want me to also add **setup instructions** (how to install dependencies and run the server) s
